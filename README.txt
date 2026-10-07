@@ -1,6 +1,8 @@
-Registro Pirulo v5.7 FINAL ESTABLE
-- Base funcional v5.2 con logos VALMA reales.
-- Modal centrado y no se cierra tocando afuera.
-- Google Maps.
-- Historial muestra todos los lugares juntos en la tarjeta y los separa al abrir el detalle.
-- Mantiene registrador de visitas, administración, autenticación, búsqueda, edición y eliminación.
+Registro Pirulo v5.8 — CORREGIDO
+- Base funcional restaurada desde v5.2
+- Registrar visita restaurado
+- Administración preservada
+- Logos VALMA reales incluidos en assets/
+- Google Maps
+- Modales no se cierran al tocar afuera
+- Historial, buscador, edición y eliminación preservados
