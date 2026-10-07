@@ -1,5 +1,5 @@
 
--- Registro Pirulo 4.2 — usuarios, administración y actividad
+-- Registro Pirulo 4.3 — usuarios, administración, actividad e historial
 -- Ejecutar una sola vez en Supabase > SQL Editor.
 -- Este script NO borra los registros existentes.
 
@@ -84,6 +84,10 @@ drop policy if exists "Permitir insertar registros" on public.registros;
 drop policy if exists "Permitir leer registros" on public.registros;
 drop policy if exists "Permitir actualizar registros" on public.registros;
 drop policy if exists "Permitir eliminar registros" on public.registros;
+drop policy if exists "Solo autenticados pueden ver registros" on public.registros;
+drop policy if exists "Solo autenticados pueden crear registros" on public.registros;
+drop policy if exists "Solo autenticados pueden editar registros" on public.registros;
+drop policy if exists "Solo autenticados pueden eliminar registros" on public.registros;
 
 create policy "Solo autenticados pueden ver registros"
 on public.registros for select to authenticated
