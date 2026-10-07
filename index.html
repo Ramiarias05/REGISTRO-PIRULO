@@ -36,8 +36,10 @@
 <nav class="nav" id="nav"></nav><main class="content" id="content"></main>
 </div>
 <div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="sheet"><h2 id="modalTitle">Nuevo registro</h2><form id="form"><div class="formgrid">
-<div class="field"><label>Tipo</label><select id="type"><option value="hotel">🏨 Hotel</option><option value="teatro">🎭 Teatro / sala</option><option value="restaurante">🍽️ Restaurante</option><option value="contacto">👤 Contacto</option><option value="ciudad">📍 Ciudad</option></select></div>
-<div class="field"><label>Nombre</label><input id="name" required placeholder="Nombre"></div><div class="field"><label>Ciudad</label><input id="city" placeholder="Ciudad"></div><div class="field"><label>Teléfono / WhatsApp</label><input id="phone" placeholder="+54 9..."></div><div class="field"><label>Dirección</label><input id="address" placeholder="Dirección"></div><div class="field"><label>Contacto / cargo</label><input id="contact" placeholder="Ej. Juan — Producción"></div><div class="field"><label>Calificación</label><select id="rating"><option value="">Sin calificar</option><option>⭐</option><option>⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐⭐⭐</option></select></div><div class="field"><label>Favorito</label><select id="favorite"><option value="no">No</option><option value="si">Sí</option></select></div><div class="field full"><label>Notas</label><textarea id="notes" placeholder="Precios, condiciones, experiencia, horarios, datos importantes..."></textarea></div>
+<div class="field"><label>Tipo</label><select id="type" onchange="renderTypeFields()"><option value="hotel">🏨 Hotel</option><option value="teatro">🎭 Teatro / sala</option><option value="restaurante">🍽️ Restaurante</option><option value="contacto">👤 Contacto</option><option value="ciudad">📍 Ciudad</option></select></div>
+<div class="field"><label>Nombre</label><input id="name" required placeholder="Nombre"></div><div class="field"><label>Ciudad</label><input id="city" placeholder="Ciudad"></div><div class="field"><label>Teléfono / WhatsApp</label><input id="phone" placeholder="+54 9..."></div><div class="field"><label>Dirección</label><input id="address" placeholder="Dirección"></div><div class="field"><label>Contacto / cargo</label><input id="contact" placeholder="Ej. Juan — Producción"></div><div class="field"><label>Calificación</label><select id="rating"><option value="">Sin calificar</option><option>⭐</option><option>⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐⭐⭐</option></select></div><div class="field"><label>Favorito</label><select id="favorite"><option value="no">No</option><option value="si">Sí</option></select></div>
+<div id="typeFields" class="formgrid field full" style="padding:0"></div>
+<div class="field full"><label>Notas generales</label><textarea id="notes" placeholder="Información adicional..." ></textarea></div>
 </div><div class="modal-actions"><button type="button" class="cancel" onclick="closeModal()">Cancelar</button><button type="button" class="save">Guardar registro</button></div></form></div></div>
 <div class="modal" id="historyModal" onclick="if(event.target===this)closeHistoryModal()"><div class="sheet"><h2 id="historyModalTitle">Nueva visita / gira</h2><form id="historyForm"><div class="formgrid">
 <div class="field"><label>Fecha</label><input id="hdate" type="date" required></div>
@@ -151,6 +153,24 @@ async function removeHistory(id){if(!confirm('¿Eliminar esta visita del histori
 document.getElementById('historySave').addEventListener('click',saveHistory);
 function render(){nav();let q=(document.getElementById('search').value||'').toLowerCase().trim();let filtered=data.filter(x=>Object.values(x).join(' ').toLowerCase().includes(q));let c=document.getElementById('content');if(current==='admin'&&isAdmin){renderAdmin();return}if(current==='inicio'){let cities=[...new Set(data.map(x=>x.city).filter(Boolean))];c.innerHTML=`<section class="hero"><div class="eyebrow">REGISTRO PIRULO</div><h2>La información de cada plaza, siempre a mano.</h2><p>Guardá hoteles, teatros, restaurantes, contactos y ciudades para que cada gira empiece con todo organizado.</p><span class="mini">☁️ Los datos se guardan de forma segura y compartida</span></section><div class="grid"><div class="stat"><b>${data.length}</b><span>Registros</span></div><div class="stat"><b>${data.filter(x=>x.type==='hotel').length}</b><span>Hoteles</span></div><div class="stat"><b>${data.filter(x=>x.type==='teatro').length}</b><span>Teatros</span></div><div class="stat"><b>${cities.length}</b><span>Ciudades</span></div></div><div class="section-head"><h3>Últimos registros</h3><button class="link" onclick="current='inicio';document.getElementById('search').focus()">Buscar</button></div><div class="cards">${filtered.slice(-6).reverse().map(card).join('')||'<div class="empty">No encontramos registros.</div>'}</div>`}else if(current==='historial'){renderHistory(filtered)}else if(current==='ciudad'){let cities=[...new Map(filtered.filter(x=>x.city).map(x=>[x.city,x])).values()];c.innerHTML=`<div class="section-head"><h3>Ciudades</h3><button class="primary" onclick="openModal('ciudad')">＋ Agregar</button></div><div class="cards">${cities.map(cityCard).join('')||'<div class="empty">Todavía no hay ciudades cargadas.</div>'}</div>`}else{c.innerHTML=`<div class="section-head"><h3>${labels[current]}</h3><button class="primary" onclick="openModal('${current}')">＋ Agregar</button></div><div class="cards">${filtered.filter(x=>x.type===current).map(card).join('')||'<div class="empty">No hay registros en esta sección.<br><br>Tocá “＋ Agregar” para cargar el primero.</div>'}</div>`}}
 let editingId=null;
+function renderTypeFields(existing={}){
+  const type=document.getElementById('type').value;
+  const d=existing||{};
+  const wrap=document.getElementById('typeFields');
+  const input=(id,label,ph='',type='text')=>`<div class="field"><label>${label}</label><input id="d_${id}" type="${type}" placeholder="${ph}" value="${esc(d[id]??'')}"></div>`;
+  const select=(id,label,opts)=>`<div class="field"><label>${label}</label><select id="d_${id}"><option value="">Seleccionar...</option>${opts.map(o=>`<option value="${esc(o.v)}" ${String(d[id]??'')===o.v?'selected':''}>${o.t}</option>`).join('')}</select></div>`;
+  const area=(id,label,ph='')=>`<div class="field full"><label>${label}</label><textarea id="d_${id}" placeholder="${ph}">${esc(d[id]??'')}</textarea></div>`;
+  let html='';
+  if(type==='hotel') html=[input('price','💰 Precio','Ej. $120.000'),select('currency','Moneda',[{v:'ARS',t:'Pesos argentinos (ARS)'},{v:'USD',t:'Dólares (USD)'},{v:'EUR',t:'Euros (EUR)'}]),select('room','🛏️ Tipo de habitación',[{v:'simple',t:'Simple'},{v:'doble',t:'Doble'},{v:'triple',t:'Triple'},{v:'multiple',t:'Múltiple'},{v:'otro',t:'Otro'}]),select('breakfast','🍳 Desayuno incluido',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),select('dining','🍽️ Comedor',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),select('parking','🚗 Estacionamiento',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),select('wifi','📶 WiFi',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),input('checkin','🕐 Check-in','14:00','time'),input('checkout','🕐 Check-out','10:00','time'),input('payment','💳 Formas de pago','Efectivo, transferencia, tarjeta'),area('conditions','📋 Condiciones','Políticas, reservas, señas, cancelaciones...')].join('');
+  else if(type==='teatro') html=[input('capacity','👥 Capacidad','Ej. 850','number'),input('showtime','🎟️ Horario de función','20:30','time'),input('arrival','🕐 Horario de llegada','17:00','time'),select('sound','🎧 Sonido',[{v:'propio',t:'Propio'},{v:'teatro',t:'Del teatro'},{v:'mixto',t:'Mixto'}]),select('lighting','💡 Iluminación',[{v:'propia',t:'Propia'},{v:'teatro',t:'Del teatro'},{v:'mixta',t:'Mixta'}]),select('stage','🎬 Escenario',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),select('parking','🚗 Estacionamiento',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),input('price','💰 Precio / alquiler','Ej. $500.000'),input('payment','💳 Formas de pago',''),area('conditions','📋 Condiciones','Condiciones de alquiler, venta de entradas, horarios...')].join('');
+  else if(type==='restaurante') html=[input('price','💰 Precio por persona','Ej. $25.000'),select('menu','🍽️ Menú',[{v:'fijo',t:'Menú fijo'},{v:'eleccion',t:'A elección'},{v:'buffet',t:'Buffet'},{v:'otro',t:'Otro'}]),select('drinks','🥤 Bebidas incluidas',[{v:'si',t:'Sí'},{v:'no',t:'No'},{v:'algunas',t:'Algunas'}]),input('people','👥 Cantidad de personas','Ej. 15','number'),input('opening','🕐 Horario','12:00 - 15:00'),select('parking','🅿️ Estacionamiento',[{v:'si',t:'Sí'},{v:'no',t:'No'}]),input('payment','💳 Formas de pago',''),area('conditions','📋 Condiciones','Reservas, menú, horarios, grupos...')].join('');
+  else if(type==='contacto') html=[input('position','💼 Cargo','Ej. Gerente / Producción'),input('company','🏢 Empresa / lugar',''),input('email','✉️ Email','correo@ejemplo.com','email'),input('phone_alt','📞 Teléfono alternativo',''),area('notes','📝 Información del contacto','Datos importantes...')].join('');
+  else if(type==='ciudad') html=[input('province','🗺️ Provincia','Córdoba'),input('country','🌎 País','Argentina'),area('citynotes','📝 Información','Accesos, referencias, datos de la plaza...')].join('');
+  wrap.innerHTML=html;
+}
+function collectTypeFields(){
+  const out={}; document.querySelectorAll('#typeFields [id^="d_"]').forEach(el=>{out[el.id.slice(2)]=el.value}); return out;
+}
 function openModal(type){
   editingId=null;
   document.getElementById('modalTitle').textContent='Nuevo registro';
@@ -158,6 +178,7 @@ function openModal(type){
   document.getElementById('modal').classList.add('open');
   document.getElementById('form').reset();
   if(type&&type!=='inicio')document.getElementById('type').value=type;
+  renderTypeFields();
 }
 function editItem(id){
   const x=data.find(r=>Number(r.id)===Number(id));
@@ -174,6 +195,7 @@ function editItem(id){
   document.getElementById('rating').value=x.rating||'';
   document.getElementById('favorite').value=x.favorite?'si':'no';
   document.getElementById('notes').value=x.notes||'';
+  renderTypeFields(x.details||{});
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(){
@@ -182,6 +204,7 @@ function closeModal(){
   editingId=null;
   document.getElementById('modalTitle').textContent='Nuevo registro';
   document.querySelector('.save').textContent='Guardar registro';
+  renderTypeFields();
 }
 function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 async function addRecord(){
@@ -199,7 +222,8 @@ async function addRecord(){
     contact:document.getElementById('contact').value.trim(),
     rating:document.getElementById('rating').value,
     favorite:document.getElementById('favorite').value==='si',
-    notes:document.getElementById('notes').value.trim()
+    notes:document.getElementById('notes').value.trim(),
+    details:collectTypeFields()
   };
   let result;
   if(editingId){
